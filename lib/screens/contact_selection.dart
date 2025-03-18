@@ -13,7 +13,7 @@ class ContactSelection extends StatefulWidget {
 
 class _ContactSelectionState extends State<ContactSelection> {
   List<Contact> _contacts = [];
-  Set<String> _selectedContacts = {};
+  Set<String> _selectedContacts = {}; // Stores "Name:Number"
   bool _isLoading = true;
 
   @override
@@ -37,7 +37,7 @@ class _ContactSelectionState extends State<ContactSelection> {
 
     if (kDebugMode) {
       print("Loaded SOS Contacts: $savedContacts");
-    } // Debugging log
+    }
 
     setState(() {
       _contacts = contacts.toList();
@@ -46,14 +46,17 @@ class _ContactSelectionState extends State<ContactSelection> {
     });
   }
 
+  void _toggleContactSelection(Contact contact) {
+    if (contact.phones!.isEmpty) return; // Ignore contacts without numbers
 
-  void _toggleContactSelection(String contactName) {
+    String contactEntry = "${contact.displayName}:${contact.phones!.first.value}";
+
     setState(() {
-      if (_selectedContacts.contains(contactName)) {
-        _selectedContacts.remove(contactName);
+      if (_selectedContacts.contains(contactEntry)) {
+        _selectedContacts.remove(contactEntry);
       } else {
         if (_selectedContacts.length < 5) {
-          _selectedContacts.add(contactName);
+          _selectedContacts.add(contactEntry);
         } else {
           _showMaxSelectionError();
         }
@@ -66,14 +69,12 @@ class _ContactSelectionState extends State<ContactSelection> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Limit Reached"),
-          content: Text("You can only select a maximum of 5 SOS contacts."),
+          title: const Text("Limit Reached"),
+          content: const Text("You can only select a maximum of 5 SOS contacts."),
           actions: <Widget>[
             TextButton(
-              child: Text("OK"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              child: const Text("OK"),
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         );
@@ -83,47 +84,58 @@ class _ContactSelectionState extends State<ContactSelection> {
 
   Future<void> _saveSelectedContacts() async {
     final prefs = await SharedPreferences.getInstance();
-    final List<String> contactsToSave = _selectedContacts.toList(); // Ensure it's a List
+    final List<String> contactsToSave = _selectedContacts.toList();
 
     if (kDebugMode) {
       print("Saving SOS Contacts: $contactsToSave");
-    } // Debugging log
+    }
 
     await prefs.setStringList('selectedSOSContacts', contactsToSave);
     Navigator.pop(context);
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Select SOS Contacts", style: TextStyle(color: Colors.white)),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.save, color: Colors.white),
-            onPressed: _saveSelectedContacts,
-          ),
-        ],
-        backgroundColor: Color(0xFF0D2A3C),
+        title: const Text("Select SOS Contacts", style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF0D2A3C),
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-        itemCount: _contacts.length,
-        itemBuilder: (context, index) {
-          final contact = _contacts[index];
-          final isSelected = _selectedContacts.contains(contact.displayName);
-          return ListTile(
-            title: Text(contact.displayName ?? "No Name"),
-            trailing: Icon(
-              isSelected ? Icons.check_box : Icons.check_box_outline_blank,
-              color: isSelected ? Colors.green : null,
-            ),
-            onTap: () => _toggleContactSelection(contact.displayName ?? ''),
-          );
-        },
+      body: Container(
+        color: const Color(0xFF80a6eb),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : ListView.builder(
+          itemCount: _contacts.length,
+          itemBuilder: (context, index) {
+            final contact = _contacts[index];
+            String contactEntry = "${contact.displayName}:${contact.phones!.isNotEmpty ? contact.phones!.first.value : 'No Number'}";
+            final isSelected = _selectedContacts.contains(contactEntry);
+
+            return Card(
+              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              child: ListTile(
+                tileColor: Colors.white,
+                title: Text(contact.displayName ?? "No Name"),
+                subtitle: Text(contact.phones!.isNotEmpty ? contact.phones!.first.value ?? "No Number" : "No Number"),
+                trailing: Icon(
+                  isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+                  color: isSelected ? Colors.green : null,
+                ),
+                onTap: () => _toggleContactSelection(contact),
+              ),
+            );
+          },
+        ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _saveSelectedContacts,
+        backgroundColor: Colors.blue,
+        shape: const CircleBorder(),
+        child: const Icon(Icons.save, color: Colors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
     );
   }
 }

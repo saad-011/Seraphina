@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:seraphina/services/location_service.dart';
 
 class LocationSharing extends StatefulWidget {
   const LocationSharing({super.key});
@@ -8,6 +9,47 @@ class LocationSharing extends StatefulWidget {
 }
 
 class _LocationSharingState extends State<LocationSharing> {
+  String _currentLocation = "Fetching location...";
+  bool _isLoadingLocation = false;
+  bool _isSendingSOS = false;
+
+  Future<void> _updateLocation() async {
+    setState(() {
+      _isLoadingLocation = true;
+    });
+
+    String? location = await LocationService.getCurrentLocation();
+
+    setState(() {
+      _currentLocation = location ?? "⚠️ Unable to fetch location. Check GPS settings.";
+      _isLoadingLocation = false;
+    });
+  }
+
+  Future<void> _sendLocation() async {
+    setState(() {
+      _isSendingSOS = true;
+    });
+
+    await LocationService.sendSOSAlert();
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("✅ SOS alert sent successfully!")),
+      );
+    }
+
+    setState(() {
+      _isSendingSOS = false;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _updateLocation();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,106 +71,88 @@ class _LocationSharingState extends State<LocationSharing> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Back button on the left
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IconButton(
                       icon: const Icon(Icons.arrow_back, size: 28, color: Colors.white),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ),
-                  // Centered Title
                   const Text(
                     "Live Location Sharing",
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                 ],
               ),
             ),
-
             const SizedBox(height: 40),
-
-            // Title "Seraphina"
             const Text(
               "Seraphina",
-              style: TextStyle(
-                fontSize: 60,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-                fontFamily: 'Cursive',
-              ),
+              style: TextStyle(fontSize: 60, fontWeight: FontWeight.bold, color: Colors.black, fontFamily: 'Cursive'),
             ),
-
-            const SizedBox(height: 40),
-
-            // Location Icon
+            const SizedBox(height: 20),
             Container(
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.3),
                 shape: BoxShape.circle,
               ),
               padding: const EdgeInsets.all(20),
-              child: const Icon(
-                Icons.location_on,
-                size: 150,
-                color: Colors.black54,
+              child: const Icon(Icons.location_on, size: 150, color: Colors.black54),
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                _currentLocation,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 18, color: Colors.white),
               ),
             ),
-
-            const SizedBox(height: 40),
-
-            // Send Live Location Button
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+              ),
+              onPressed: _isLoadingLocation ? null : _updateLocation,
+              child: _isLoadingLocation
+                  ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              )
+                  : const Text("Refresh Location", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 10),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
               ),
-              onPressed: () {
-                // TODO: Implement location sharing function
-              },
-              child: const Text(
-                "Send Live Location",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              onPressed: _isSendingSOS ? null : _sendLocation,
+              child: _isSendingSOS
+                  ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              )
+                  : const Text("Send Live Location", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Color(0xFF0D2A3C),
+        backgroundColor: const Color(0xFF0D2A3C),
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.white70,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.call),
-            label: 'Helplines',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.contacts),
-            label: 'Contacts',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.call), label: 'Helplines'),
+          BottomNavigationBarItem(icon: Icon(Icons.contacts), label: 'Contacts'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
         ],
       ),
     );

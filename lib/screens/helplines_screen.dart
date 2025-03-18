@@ -121,21 +121,20 @@ class _HelplinesScreenState extends State<HelplinesScreen> {
         color: const Color(0xFF80a6eb),
         child: Column(
           children: [
-            // City selection with rectangle and curved edges
             Container(
               margin: EdgeInsets.all(10),
               padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
               decoration: BoxDecoration(
-                color: Color(0xff109CCD), // Dark blue background
-                borderRadius: BorderRadius.circular(12.0), // Curved edges
+                color: Color(0xff109CCD),
+                borderRadius: BorderRadius.circular(12.0),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: selectedCity,
-                  dropdownColor: Color(0xFF6394B3),
-                  icon: Icon(Icons.arrow_drop_down, color: Colors.white), // White arrow
+                  dropdownColor: Color(0xFF3F4D55),
+                  icon: Icon(Icons.arrow_drop_down, color: Colors.white),
                   elevation: 16,
-                  style: TextStyle(color: Colors.white), // White text
+                  style: TextStyle(color: Colors.white),
                   onChanged: (String? newValue) {
                     if (newValue != null) {
                       setState(() {
