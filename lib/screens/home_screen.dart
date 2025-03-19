@@ -23,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime? _lastPressed; // Track last back button press time
 
   final List<Widget> _pages = [
-    const HomeContent(),       // ✅ Fixed: Replaced with correct home page widget
+    const HomeContent(),
     const HelplinesScreen(),
     const ContactsScreen(),
     const SettingScreen(),
@@ -140,7 +140,7 @@ class HomeContent extends StatelessWidget {
                   featureCard(
                     label: 'SOS Alert',
                     icon: Icons.notification_important_rounded,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SosAlert())),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SOSAlert())),
                   ),
                 ],
               ),

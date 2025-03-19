@@ -31,11 +31,11 @@ class _LocationSharingState extends State<LocationSharing> {
       _isSendingSOS = true;
     });
 
-    await LocationService.sendSOSAlert();
+    await LocationService.sendAlert("Location");
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("✅ SOS alert sent successfully!")),
+        const SnackBar(content: Text("✅ Location shared successfully!")),
       );
     }
 
@@ -79,7 +79,7 @@ class _LocationSharingState extends State<LocationSharing> {
                     ),
                   ),
                   const Text(
-                    "Live Location Sharing",
+                    "Location Sharing",
                     style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                 ],
@@ -122,7 +122,7 @@ class _LocationSharingState extends State<LocationSharing> {
                 width: 20,
                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
               )
-                  : const Text("Refresh Location", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  : const Text("Refresh Location", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
             ),
             const SizedBox(height: 10),
             ElevatedButton(
@@ -138,23 +138,12 @@ class _LocationSharingState extends State<LocationSharing> {
                 width: 20,
                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
               )
-                  : const Text("Send Live Location", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  : const Text("Send Live Location", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF0D2A3C),
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white70,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.call), label: 'Helplines'),
-          BottomNavigationBarItem(icon: Icon(Icons.contacts), label: 'Contacts'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
-        ],
-      ),
+
     );
   }
 }

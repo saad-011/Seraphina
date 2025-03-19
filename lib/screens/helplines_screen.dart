@@ -99,7 +99,7 @@ class _HelplinesScreenState extends State<HelplinesScreen> {
         ),
         centerTitle: true,
         backgroundColor: const Color(0xFF0D2A3C),
-        title: Text('Helplines', style: TextStyle(color: Colors.white)),
+        title: Text('Helplines', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.search, color: Colors.white),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:seraphina/screens/contact_selection.dart';
 
 class ContactsScreen extends StatefulWidget {
@@ -33,7 +34,18 @@ class _ContactsScreenState extends State<ContactsScreen> {
       context,
       MaterialPageRoute(builder: (context) => const ContactSelection()),
     );
-    _loadSelectedContacts(); // Reload contacts after returning
+    _loadSelectedContacts();
+  }
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not launch $phoneNumber')),
+      );
+    }
   }
 
   @override
@@ -41,43 +53,60 @@ class _ContactsScreenState extends State<ContactsScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF0D2A3C),
-        centerTitle: true, // Center title
+        centerTitle: true,
         title: const Text(
           "Emergency Contacts",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: _selectedSOSContacts.isEmpty
-          ? const Center(child: Text("No Emergency Contacts Selected"))
-          : ListView.builder(
-        itemCount: _selectedSOSContacts.length,
-        itemBuilder: (context, index) {
-          final contactData = _selectedSOSContacts[index].split(':');
-          final contactName = contactData[0].trim();
-          final contactNumber = contactData.length > 1 ? contactData[1].trim() : "No Number";
+      body: Container(
+        color: const Color(0xFF80a6eb),
+        child: _selectedSOSContacts.isEmpty
+            ? const Center(
+          child: Text(
+            "No Emergency Contacts Selected",
+            style: TextStyle(fontSize: 16, color: Colors.white),
+          ),
+        )
+            : ListView.builder(
+          itemCount: _selectedSOSContacts.length,
+          itemBuilder: (context, index) {
+            final contactData = _selectedSOSContacts[index].split(':');
+            final contactName = contactData[0].trim();
+            final contactNumber = contactData.length > 1 ? contactData[1].trim() : "No Number";
 
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            child: ListTile(
-              tileColor: Colors.white,
-              leading: const Icon(Icons.phone, color: Colors.red),
-              title: Text(contactName, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(contactNumber, style: const TextStyle(color: Colors.grey)),
-            ),
-          );
-        },
-      ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 50.0), // Adjust button above bottom nav bar
-        child: FloatingActionButton(
-          onPressed: _navigateToSelectionScreen,
-          backgroundColor: const Color(0xFF0D2A3C),
-          child: const Icon(Icons.add, color: Colors.white), // "+" icon
+            return Card(
+              color: const Color(0xFF034D7E), // Dark blue card background
+              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: ListTile(
+                title: Text(
+                  contactName,
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+                subtitle: Text(
+                  contactNumber,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.phone, color: Colors.white),
+                  onPressed: () => _makePhoneCall(contactNumber),
+                ),
+              ),
+            );
+          },
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked, // Positioned in bottom-right
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 50.0),
+        child: FloatingActionButton(
+          onPressed: _navigateToSelectionScreen,
+          backgroundColor: Colors.blue,
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
     );
   }
 }

@@ -6,7 +6,6 @@ import 'package:telephony/telephony.dart';
 class LocationService {
   static final Telephony telephony = Telephony.instance;
 
-  /// Get the current live location of the user
   static Future<String?> getCurrentLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -14,7 +13,7 @@ class LocationService {
     // Check if location services are enabled
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      return null; // Return null to indicate failure
+      return null;
     }
 
     // Check location permissions
@@ -42,8 +41,7 @@ class LocationService {
     }
   }
 
-  /// Send SOS alert with live location to emergency contacts
-  static Future<void> sendSOSAlert() async {
+  static Future<void> sendAlert(String messageType) async {
     final prefs = await SharedPreferences.getInstance();
     List<String> emergencyContacts = prefs.getStringList('selectedSOSContacts') ?? [];
 
@@ -54,7 +52,6 @@ class LocationService {
       return;
     }
 
-    // Request SMS permissions
     bool? permissionsGranted = await telephony.requestSmsPermissions;
     if (permissionsGranted == false) {
       if (kDebugMode) {
@@ -64,7 +61,18 @@ class LocationService {
     }
 
     String? location = await getCurrentLocation();
-    String message = "🚨 Emergency Alert! 🚨\nI need help! My live location: $location";
+
+    String message;
+    if (messageType == "SOS") {
+      message = "🚨 Emergency Alert! 🚨\nI need help! My current location: $location";
+    } else if (messageType == "Location") {
+      message = "📍 Location Shared: Here is my current location: $location";
+    } else {
+      if (kDebugMode) {
+        print("❌ Invalid message type: $messageType");
+      }
+      return;
+    }
 
     for (String contact in emergencyContacts) {
       try {
@@ -73,14 +81,13 @@ class LocationService {
           message: message,
         );
         if (kDebugMode) {
-          print("✅ SOS alert sent to $contact");
+          print("✅ $messageType alert sent to $contact");
         }
       } catch (e) {
         if (kDebugMode) {
-          print("❌ Failed to send SOS alert to $contact: $e");
+          print("❌ Failed to send $messageType alert to $contact: $e");
         }
       }
     }
   }
-
 }
