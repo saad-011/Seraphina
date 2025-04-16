@@ -25,6 +25,7 @@ class _HelplinesScreenState extends State<HelplinesScreen> {
       {'name': 'Madadgar', 'number': '1098'},
       {'name': 'Women Toll Free Helpline', 'number': '1043'},
       {'name': 'Rescue 1122', 'number': '1122'},
+      {'name': 'Zainab Akram', 'number': '+923354292366'},
       {'name': 'Fire Brigade', 'number': '16'},
       {'name': 'Aurat Foundation Lahore', 'number': '+92-042-36286296'},
 

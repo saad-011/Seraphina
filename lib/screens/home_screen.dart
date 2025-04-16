@@ -133,7 +133,7 @@ class HomeContent extends StatelessWidget {
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const FakeCall())),
                   ),
                   featureCard(
-                    label: 'Live Location',
+                    label: 'Location Sharing',
                     icon: Icons.location_pin,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LocationSharing())),
                   ),
