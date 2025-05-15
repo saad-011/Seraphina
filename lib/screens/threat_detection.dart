@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:vibration/vibration.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:seraphina/services/location_service.dart';
 
@@ -82,33 +82,80 @@ class _ThreatDetectionState extends State<ThreatDetection> {
 
   Future<void> _sendToServer(String filePath) async {
     try {
-      final request = http.MultipartRequest(
+      final scream = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.100.67:5000/upload'),  // Correct URL here
+        Uri.parse('http://192.168.100.67:5000/screamAPI'),
       );
 
-      request.files.add(await http.MultipartFile.fromPath('file', filePath));
-      final response = await request.send();
-      final responseString = await response.stream.bytesToString();
+      scream.files.add(await http.MultipartFile.fromPath('file', filePath));
+      final response1 = await scream.send();
+      final responseString1 = await response1.stream.bytesToString();
 
-      if (response.statusCode == 200) {
-        if (kDebugMode) print("Uploaded: $filePath - Response: $responseString");
+      if (response1.statusCode == 200) {
+        if (kDebugMode) {
+          print(
+              "Uploaded: $filePath - Response: $responseString1");
+        }
 
         // Parse the response (assuming JSON response from server)
-        final responseJson = jsonDecode(responseString);
-        final prediction = responseJson['prediction'];
+        final responseJson1 = jsonDecode(responseString1);
+        final prediction1 = responseJson1['prediction'];
 
-        // Check the prediction result
-        if (prediction == 1) {
-          // Threat detected (Scream detected)
-          if (kDebugMode) print("🚨 Threat Detected, Triggering SOS!");
-          _sendSOSAlert();
-        } else {
-          // No threat detected, keep checking
-          if (kDebugMode) print("No scream detected. Continuing monitoring...");
+        final emotion = http.MultipartRequest(
+          'POST',
+          Uri.parse('http://192.168.100.67:5000/emotionAPI'),
+        );
+
+        emotion.files.add(await http.MultipartFile.fromPath('file', filePath));
+        final response3 = await emotion.send();
+        final responseString3 = await response3.stream.bytesToString();
+
+        if (response3.statusCode == 200) {
+          if (kDebugMode) {
+            print(
+                "Uploaded: $filePath - Response: $responseString3");
+          }
+
+          // Parse the response (assuming JSON response from server)
+          final responseJson3 = jsonDecode(responseString3);
+          final prediction3 = responseJson3['prediction'];
+
+          final hate = http.MultipartRequest(
+            'POST',
+            Uri.parse('http://192.168.100.67:5000/hateAPI'),
+          );
+
+          hate.files.add(await http.MultipartFile.fromPath('file', filePath));
+          final response2 = await hate.send();
+          final responseString2 = await response2.stream.bytesToString();
+
+          if (response2.statusCode == 200) {
+            if (kDebugMode) {
+              print(
+                  "Uploaded: $filePath - Response: $responseString2");
+            }
+
+            // Parse the response (assuming JSON response from server)
+            final responseJson2 = jsonDecode(responseString2);
+            final prediction2 = responseJson2['prediction'];
+
+            // Check the prediction result
+            if (prediction2 == 1 || prediction1 == 1 || prediction3 == 1) {
+              // Threat detected (Scream detected)
+              if (kDebugMode) print("🚨 Threat Detected, Triggering SOS!");
+              await _stopRecording();
+              _sendSOSAlert();
+            } else {
+              // No threat detected, keep checking
+              if (kDebugMode) {
+                print(
+                    "No scream detected. Continuing monitoring...");
+              }
+            }
+          } else {
+            if (kDebugMode) print("Failed upload: ${response1.statusCode}");
+          }
         }
-      } else {
-        if (kDebugMode) print("Failed upload: ${response.statusCode}");
       }
     } catch (e) {
       if (kDebugMode) print("Upload error: $e");
@@ -128,6 +175,9 @@ class _ThreatDetectionState extends State<ThreatDetection> {
   bool _isSendingSOS = false;
 
   Future<void> _sendSOSAlert() async {
+    if (await Vibration.hasVibrator() ?? false) {
+      Vibration.vibrate(duration: 5000);
+    }
     setState(() => _isSendingSOS = true);
 
     await LocationService.sendAlert("SOS");

@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:another_telephony/telephony.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:seraphina/screens/home_screen.dart';
+import 'package:seraphina/screens/signin_screen.dart';
+
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -13,62 +13,146 @@ class SettingScreen extends StatefulWidget {
 }
 
 class _SettingScreenState extends State<SettingScreen> {
-  final Telephony telephony = Telephony.instance;
-
-  static Future<String?> getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return null;
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return null;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      return null;
-    }
-
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-      return "https://www.google.com/maps?q=${position.latitude},${position
-          .longitude}";
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error fetching location: $e");
-      }
-      return null;
-    }
-  }
-
-  Future<void> sendSms() async {
-    String? location = await getCurrentLocation();
-    String locationMessage = location ?? "Location unavailable.";
-    String message = "📍 Location Shared: Here is my current location: $locationMessage";
-    telephony.sendSms(
-      to: "+923354292366",
-      message: "Hello from another_telephony!",
-    );
-  }
+  final String userName = "Zainab Akram";
 
   @override
   Widget build(BuildContext context) {
+    final List<Map<String, dynamic>> settingOptions = [
+      {
+        "title": "Edit Profile",
+        "icon": Icons.edit,
+        "onTap": () {},
+      },
+      {
+        "title": "Change Password",
+        "icon": Icons.lock,
+        "onTap": () {},
+      },
+      {
+        "title": "About Us",
+        "icon": Icons.info_outline,
+        "onTap": () {},
+      },
+      {
+        "title": "Logout",
+        "icon": Icons.logout,
+        "onTap": () {
+          FirebaseAuth.instance.signOut().then((value) {
+            if (kDebugMode) {
+              print("Signed Out");
+            }
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const SignInScreen()),
+            );
+          });
+        },
+      },
+    ];
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Settings")),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: sendSms,
-          child: const Text("Send SMS"),
+      backgroundColor: const Color(0xFF9EC5F8),
+      appBar: AppBar(
+        centerTitle: true,
+        backgroundColor: const Color(0xFF0D2A3C),
+        title: const Text('Settings',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          },
         ),
       ),
+      body: Column(
+        children: [
+          const SizedBox(height: 20),
+
+          // Big profile icon
+          const CircleAvatar(
+            radius: 75,
+            backgroundColor: Colors.white,
+            child: Icon(Icons.person, size: 120, color: Color(0xFF0D3B66)),
+          ),
+          const SizedBox(height: 12),
+
+          // User name
+          Text(
+            userName,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0D3B66),
+            ),
+          ),
+
+          // Divider line
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+            child: Divider(
+              color: Colors.black,
+              thickness: 2,
+            ),
+          ),
+
+          // Menu cards
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              itemCount: settingOptions.length,
+              itemBuilder: (context, index) {
+                final option = settingOptions[index];
+                return Card(
+                  color: const Color(0xFF034D7E),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  child: Padding(
+                    padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(option["icon"], color: Colors.white),
+                        const SizedBox(width: 12),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 160),
+                          child: Text(
+                            option["title"],
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                        const Spacer(),
+                        const Icon(Icons.arrow_forward_ios,
+                            color: Colors.white, size: 16),
+                      ],
+                    ),
+                  ),
+                ).applyClickHandler(option["onTap"]);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Helper extension to handle row clicks
+extension CardTapHandler on Widget {
+  Widget applyClickHandler(VoidCallback? onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: this,
     );
   }
 }

@@ -146,48 +146,7 @@ class HomeContent extends StatelessWidget {
               ),
             ),
             // Logout Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 30),
-              child: ElevatedButton(
-                onPressed: () {
-                  FirebaseAuth.instance.signOut().then((value) {
-                    if (kDebugMode) {
-                      print("Signed Out");
-                    }
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SignInScreen()),
-                    );
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0D2A3C),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          "Logout",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+
             const SizedBox(height: 20),
           ],
         ),
@@ -226,7 +185,7 @@ class HomeContent extends StatelessWidget {
               size: 40,
               color: const Color(0xFF0D2A3C),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
               label,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
